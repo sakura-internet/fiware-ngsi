@@ -21,7 +21,7 @@ FIWARESERVICEPATH="/dummy_office"
 DATATYPE="WeatherObserved"
 DATANAME="test001"
 TOKENFILE=".token"
-LAT=35.694.12345
+LAT=35.12345
 LNG=139.12345
 noauthflag = False
 '''
@@ -109,11 +109,11 @@ bodypart = json .dumps(datapart)
 ### リクエスト送信パート ###
 try:
     #ret_fi1 = orion.registerEntities(body)
-    ret_fi2 = orion.updateEntities(bodypart)
+    #ret_fi2 = orion.updateEntities(bodypart)
 
     #ret_fi3 = orion.deleteEntities(data_id)
 
-    #ret_fi4 = orion.getEntities()
+    ret_fi4 = orion.getEntities()
 
     #ret_fi5 = orion.getTargetEntity(data_id)
 
