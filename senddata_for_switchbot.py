@@ -7,22 +7,24 @@ import json
 import datetime
 import logging
 
-import bme280_custom
+#import bme280_custom
+import switchbot_getmetervalue
 
 ### センサーデータを取得 ###
-sensor_data = bme280_custom.readData()
+#sensor_data = bme280_custom.readData()
+sensor_data = switchbot_getmetervalue.readData()
 
 ### アクセス先およびデータ定義 ###
-USERNAME="user00X@fiware-testbed.jp"
-PASSWORD="password"
+USERNAME="user0XX@fiware-testbed.jp"
+PASSWORD="yourPassword"
 CBHOST="https://orion.fiware-testbed.jp"
 FIWARESERVICE="Sakura"
-FIWARESERVICEPATH="/dummy_office"
+FIWARESERVICEPATH="/tokyo_office"
 DATATYPE="WeatherObserved"
-DATANAME="test001"
+DATANAME="test002"
 TOKENFILE=".token"
-LAT=35.12345
-LNG=139.12345
+LAT=35.69438888
+LNG=139.6956000
 noauthflag = False
 '''
 USERNAME="dummyuser"
@@ -70,10 +72,10 @@ data = {
         'type':'DataTime',
         'value': utcnowstr
     },
-    'atmosphericPressure':{
-        'type':'Number',
-        'value':1000.00
-    },
+    #'atmosphericPressure':{
+    #    'type':'Number',
+    #    'value':1000.00
+    #},
     'temperature':{
         'type':'Number',
         'value':20.0
@@ -91,10 +93,10 @@ datapart = {
         'type':'DateTime',
         'value': utcnowstr
     },
-    'atmosphericPressure':{
-        'type':'Number',
-        'value': float(sensor_data['pressure'])
-    },
+    #'atmosphericPressure':{
+    #    'type':'Number',
+    #    'value': float(sensor_data['pressure'])
+    #},
     'temperature':{
         'type':'Number',
         'value': float(sensor_data['temperature'])
@@ -108,14 +110,14 @@ bodypart = json .dumps(datapart)
 
 ### リクエスト送信パート ###
 try:
-    #ret_fi1 = orion.registerEntities(body)
-    #ret_fi2 = orion.updateEntities(bodypart)
+    #ret_fi1 = orion.registerEntity(body)
+    #ret_fi2 = orion.updateEntity(bodypart)
 
-    #ret_fi3 = orion.deleteEntities(data_id)
+    #ret_fi3 = orion.deleteEntity(data_id)
 
-    ret_fi4 = orion.getEntities()
+    #ret_fi4 = orion.getEntities()
 
-    #ret_fi5 = orion.getTargetEntity(data_id)
+    ret_fi5 = orion.getTargetEntity(data_id)
 
 except requests.exceptions.RequestException as e:
     print('request failed(fiware): ', e)

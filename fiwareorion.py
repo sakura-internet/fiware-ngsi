@@ -1,9 +1,7 @@
 #!/usr/bin/python
 #-*-coding: utf-8-*-
 
-import urllib
-import urllib2
-#import urllib.request, urllib.error
+import requests
 import json
 import time
 import datetime
@@ -43,20 +41,23 @@ class FiwareOrion:
         self.tokenfilename = tokenfilename
         self.noauthflag = noauthflag
 
-    def mySendRequest(self, request):
+    def mySendRequest(self, **kwargs):
         # requestを発行
         try:
-            response = urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
-            logging.error('Error code : %s' % e.code)
-            raise Exception('send request error.')
-        except urllib2.URLError as e:
-            logging.error('Error reason : %s' % e.reason)
-            raise Exception('send request error.')
+            if (('method', 'DELETE') in kwargs.items()):
+                response = requests.delete(kwargs['url'], headers=kwargs['headers'])
+            elif ('data' not in kwargs):
+                response = requests.get(kwargs['url'], headers=kwargs['headers'])
+            else:
+                response = requests.post(kwargs['url'], data=kwargs['data'], headers=kwargs['headers'])
+
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logging.error('Error code : %s' % e)
         else:
             # responseを出力
             try:
-                response_json = json.loads(response.read())
+                response_json = json.loads(response.text)
                 logging.info('Response : %s' % response_json)
                 return response_json
             except Exception:
@@ -78,12 +79,10 @@ class FiwareOrion:
         data = {
             'refresh' : self.token['refresh_token']
         }
-
         body = json.dumps(data)
-        request = urllib2.Request(url, body, header)
 
         try:
-            result = self.mySendRequest(request)
+            result = self.mySendRequest({'url':url, 'headers':header})
         except Exception:
             # トークン更新に失敗している場合は、トークン取得からやり直す
             logging.debug('token update failed')
@@ -117,7 +116,6 @@ class FiwareOrion:
         logging.debug('Token Issued Time : %s' % self.token_issued_time)
 
     def createHeaders(self):
-
         headers = {
             'Fiware-Service':self.fiwareservice,
             'Fiware-ServicePath':self.fiwareservicepath
@@ -179,8 +177,7 @@ class FiwareOrion:
 
         return headers
 
-    #def updateEntities(self, firecount, powerstate):
-    def updateEntities(self, bodypart):
+    def updateEntity(self, bodypart):
 
         try:
             headers = self.createHeaders()
@@ -194,12 +191,9 @@ class FiwareOrion:
         # URLを生成
         url = self.cb_host + "/v2/entities" + "/" +self.data_id + "/" + "attrs"
 
-        request = urllib2.Request(url, bodypart, headers)
+        self.mySendRequest(url=url, data=bodypart, headers=headers)
 
-        #return
-        self.mySendRequest(request)
-
-    def registerEntities(self, body):
+    def registerEntity(self, body):
 
         # すでに登録されているか調べ、登録されている場合は何もしない
         #if self.getTargetEntity() != None:
@@ -215,8 +209,7 @@ class FiwareOrion:
 
         url = self.cb_host + "/v2/entities"
 
-        request = urllib2.Request(url, body, headers)
-        return(self.mySendRequest(request))
+        return(self.mySendRequest(url=url, data=body, headers=headers))
 
     def registerSubscription(self, subscription_body):
 
@@ -229,32 +222,29 @@ class FiwareOrion:
 
         url = self.cb_host + "/v2/subscriptions"
 
-        request = urllib2.Request(url, subscription_body, headers)
-        return(self.mySendRequest(request))
+        #request = urllib2.Request(url, subscription_body, headers)
+        return(self.mySendRequest(url=url, data=subscription_body, headers=headers))
 
     def getEntities(self):
         url = self.cb_host + "/v2/entities"
         headers = self.createHeaders()
 
-        request = urllib2.Request(url, None, headers)
-        return(self.mySendRequest(request))
+        return(self.mySendRequest(url=url, headers=headers))
 
     def getTargetEntity(self, id):
         url = self.cb_host + "/v2/entities" + "/" + id
         logging.debug('url is %s' % url)
         headers = self.createHeaders()
 
-        request = urllib2.Request(url, None, headers)
-        return(self.mySendRequest(request))
+        return(self.mySendRequest(url=url, headers=headers))
 
     def getSubscriptions(self):
         url = self.cb_host + "/v2/subscriptions"
         headers = self.createHeaders()
 
-        request = urllib2.Request(url, None, headers)
-        return(self.mySendRequest(request))
+        return(self.mySendRequest(url=url, headers=headers))
 
-    def deleteEntities(self, id):
+    def deleteEntity(self, id):
         # 登録されているか調べ、登録されていなければ何もしない
         #if self.getTargetEntity() == None:
         #    return
@@ -262,17 +252,15 @@ class FiwareOrion:
         url = self.cb_host + "/v2/entities" + "/" + id
         headers = self.createHeaders()
 
-        request = urllib2.Request(url, None, headers)
-        request.get_method = lambda:'DELETE'
-        return(self.mySendRequest(request))
+        return(self.mySendRequest(url=url, headers=headers, method='DELETE'))
 
     def deleteAllSubscriptions(self):
 
-        subscriptions = self.getSubscriptions(noauth)
+        subscriptions = self.getSubscriptions()
 
         for subsc in subscriptions:
             logging.debug('subscription : %s' % subsc)
-            self.deleteSubscription(subsc, noauth)
+            self.deleteSubscription(subsc)
 
         return
 
@@ -284,10 +272,8 @@ class FiwareOrion:
         for id in subscriptionids:
             if id['notification']['http']['url'] == subscription_data['notification']['http']['url']:
                 url = self.cb_host + "/v2/subscriptions" + "/" + id['id']
-                request = urllib2.Request(url, None, headers)
-                request.get_method = lambda:'DELETE'
 
-                self.mySendRequest(request)
+                self.mySendRequest(url=url, headers=headers, method='DELETE')
                 return
 
     def getAccessToken(self):
@@ -301,10 +287,10 @@ class FiwareOrion:
 
         url = self.cb_host + "/token"
 
-        request = urllib2.Request(url, body, header)
+        request = {'url':url, 'data':body, 'headers':header}
 
         try:
-            self.token = self.mySendRequest(request)
+            self.token = self.mySendRequest(**request)
         except Exception:
             logging.debug('get new token error.')
             return
