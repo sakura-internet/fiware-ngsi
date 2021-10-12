@@ -7,6 +7,7 @@ import time
 import datetime
 import logging
 import pickle
+import sys
 
 #logging.basicConfig(level=logging.DEBUG)
 logging.basicConfig(level=logging.INFO)
@@ -293,7 +294,7 @@ class FiwareOrion:
             self.token = self.mySendRequest(**request)
         except Exception:
             logging.debug('get new token error.')
-            return
+            sys.exit() 
 
         self.token_issued_time = datetime.datetime.now()
 
