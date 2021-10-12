@@ -5,12 +5,19 @@ FIWARE Orion (Context Broker)へのデータ登録・更新用スクリプトで
 さくらインターネットとNECで実施中の「データ流通実証実験」の環境で使うことができます。素のFIWARE Orionの環境でももちろん使えます。
 
 ## 初期設定
-sendada.py内の冒頭部分で、IDやPassword、ContextBrokerのアドレス情報を設定してください。
-また、登録したいデータモデルをコード中程で定義してください。
+sendada_for_bme280.py(あるいは_for_switchbot)内の冒頭部分で、IDやPasswordを設定してください。
+FIWARESERVICEやFIWARESERVICEPATH、DATANAMEなどを変更してもよいです。
 
 ## 実行方法
+あらかじめ、
+# pip3 install requests
+として、requestsモジュールをインストールしておきます。
+その上で、
+
 ```
-# python ./sendada.py
+# python ./senddata_for_bme280.py
+もしくは
+# python ./senddata_for_switchbot.py
 ```
 
 初期登録とデータ更新で、コード最下段にある関数呼び出し部を書き換える必要があります。
