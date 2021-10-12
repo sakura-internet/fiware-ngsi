@@ -10,7 +10,9 @@ FIWARESERVICEやFIWARESERVICEPATH、DATANAMEなどを変更してもよいです
 
 ## 実行方法
 あらかじめ、
+```
 # pip3 install requests
+```
 として、requestsモジュールをインストールしておきます。
 その上で、
 
